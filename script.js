@@ -249,3 +249,348 @@ const optimizeImages=()=>document.querySelectorAll('img').forEach((image,index)=
   if(index>1&&!image.loading)image.loading='lazy';
 });
 setTimeout(optimizeImages,0);
+
+/* LOOK NOW：官网导航中的当日天气编辑 */
+const addLookNowNavigation=()=>{
+  const addLink=(nav,href)=>{
+    if(!nav||nav.querySelector(`[href="${href}"]`))return;
+    const link=document.createElement('a');
+    link.href=href;
+    link.textContent='LOOK NOW';
+    nav.appendChild(link);
+  };
+  addLink(document.querySelector('.desktop-nav'),'look-now.html');
+  addLink(document.querySelector('.mobile-menu nav'),'look-now.html');
+};
+
+const createLookNowSection=()=>{
+  if(document.querySelector('#look-now'))return document.querySelector('#look-now');
+  const magazine=document.querySelector('#magazine');
+  if(!magazine)return null;
+  const section=document.createElement('section');
+  section.className='look-now-section reveal';
+  section.id='look-now';
+  section.innerHTML=`
+    <div class="section-heading">
+      <div>
+        <p class="eyebrow">WEATHER EDIT / VIASEAM</p>
+        <h2>LOOK NOW <em>Today's edit</em></h2>
+      </div>
+      <p class="section-intro">根据当日气象，从 VIASEAM 现售款中选择适合此刻的造型。</p>
+    </div>
+    <div class="look-now-panel" id="lookNowPanel" aria-live="polite">
+      <p class="look-now-status">正在读取上海天气……</p>
+    </div>
+  `;
+  magazine.parentNode.insertBefore(section,magazine);
+  return section;
+};
+
+const lookNowProducts=[
+  ['01','look-01-product-front.png','米白套装','套装',[15,27],['城市漫游','日常通勤'],['轻薄','结构感']],
+  ['02','look-02-top-front-white.png','浅黄上装','上装',[19,30],['城市漫游','海滨度假'],['轻量','明亮']],
+  ['03','look-03-top-front-white.png','浅蓝上装','上装',[18,29],['城市漫游','日常通勤'],['轻薄','清爽']],
+  ['04','look-04-top-front-white.png','浅色套装','套装',[18,28],['日常通勤','城市漫游'],['利落','轻量']],
+  ['05','look-05-top-front-white.png','蓝色上装','上装',[16,27],['城市漫游','夜间出行'],['简洁','结构感']],
+  ['06','look-06-top-front-white.png','蓝色套装','套装',[16,27],['海滨度假','城市漫游'],['轻风','移动感']],
+  ['07','look-07-top-front-white.png','蓝色上装','上装',[16,26],['日常通勤','城市漫游'],['清爽','轻薄']],
+  ['08','look-08-top-front-white.png','粉色上装','上装',[20,30],['海滨度假','夜间出行'],['柔和','轻量']],
+  ['09','look-09-top-front-white.png','蓝色套装','套装',[17,28],['城市漫游','夜间出行'],['利落','层次']],
+  ['10','look-10-product-front.png','米白套装','套装',[18,29],['日常通勤','海滨度假'],['干净','轻量']],
+  ['11','look-11-dress-front-white.png','蓝色连衣裙','连衣裙',[21,31],['海滨度假','夜间出行'],['流动','轻盈']],
+  ['12','look-12-top-front-white.png','蓝色上装','上装',[17,27],['日常通勤','城市漫游'],['结构感','清爽']],
+  ['13','look-13-dress-front-white.png','米白连衣裙','连衣裙',[20,31],['海滨度假','城市漫游'],['轻盈','柔和']],
+  ['14','look-14-dress-front-white.png','白色连衣裙','连衣裙',[21,32],['海滨度假','夜间出行'],['清晰','轻量']],
+  ['15','look-15-dress-front-white.png','浅色连衣裙','连衣裙',[20,31],['海滨度假','城市漫游'],['流动','轻薄']],
+  ['16','look-16-top-front-white.png','粉色上装','上装',[19,29],['夜间出行','城市漫游'],['雾粉','层次']],
+  ['17','look-17-top-front-white.png','蓝色上装','上装',[16,27],['日常通勤','夜间出行'],['利落','清爽']],
+  ['18','look-18-top-front-white.png','蓝粉上装','上装',[18,29],['夜间出行','海滨度假'],['柔和','层次']],
+  ['19','look-19-top-back-white.png','蓝粉套装','套装',[18,28],['夜间出行','城市漫游'],['层次','轻风']],
+  ['20','look-20-top-back-white.png','白色上装','上装',[18,29],['日常通勤','城市漫游'],['干净','轻量']],
+  ['21','look-21-top-back-white.png','白色套装','套装',[17,28],['日常通勤','海滨度假'],['清晰','轻风']],
+  ['22','look-22-product-front.png','蓝色套装','套装',[16,27],['城市漫游','日常通勤'],['利落','结构感']],
+  ['23','look-23-product-front.png','蓝色连衣裙','连衣裙',[19,30],['夜间出行','海滨度假'],['流动','深蓝']],
+  ['24','look-24-top-back-white.png','白色套装','套装',[18,29],['海滨度假','城市漫游'],['轻盈','层次']],
+  ['25','look-25-top-back-white.png','蓝白条纹上装','上装',[17,28],['城市漫游','海滨度假'],['航线','轻风']]
+].map(([id,image,name,category,temperature,scenes,tags])=>({id,image,name,category,temperature,scenes,tags}));
+
+let lookNowWeather=null;
+let lookNowScene='城市漫游';
+let lookNowLocation={id:'101020100',name:'上海'};
+let lookNowLead=null;
+const savedLookKey='viaseam-look-list';
+
+const readSavedLooks=()=>{try{return JSON.parse(localStorage.getItem(savedLookKey)||'[]')}catch(error){return[]}};
+const writeSavedLooks=looks=>localStorage.setItem(savedLookKey,JSON.stringify(looks));
+const getSavedLookSignature=lead=>`${lead.id}|${lookNowLocation.name}|${lookNowScene}|${lookNowWeather?.obsTime||''}`;
+
+const renderSavedLooks=()=>{
+  const grid=document.querySelector('[data-look-now-saved]');
+  if(!grid)return;
+  const looks=readSavedLooks();
+  if(!looks.length){
+    grid.innerHTML='<p class="look-list-empty">还没有收藏。当天气、地点和场景刚好相遇时，把这一套留在这里。</p>';
+    return;
+  }
+  grid.innerHTML=looks.slice().reverse().map(look=>`
+    <article class="look-list-card">
+      <a href="product.html?look=${look.product.id}"><img src="assets/products/${look.product.image}" alt="${look.product.name}"></a>
+      <div>
+        <span>${look.location} / ${look.scene}</span>
+        <h3>${look.product.name}</h3>
+        <p>${look.weatherText} · ${look.temperature}°C</p>
+        <button type="button" data-remove-saved-look="${look.signature}">移除收藏</button>
+      </div>
+    </article>
+  `).join('');
+};
+
+const saveCurrentLook=()=>{
+  if(!lookNowLead||!lookNowWeather)return;
+  const signature=getSavedLookSignature(lookNowLead);
+  const looks=readSavedLooks();
+  const index=looks.findIndex(look=>look.signature===signature);
+  if(index>=0){
+    looks.splice(index,1);
+  }else{
+    looks.push({
+      signature,
+      product:{id:lookNowLead.id,image:lookNowLead.image,name:lookNowLead.name},
+      location:lookNowLocation.name,
+      scene:lookNowScene,
+      weatherText:lookNowWeather.text,
+      temperature:lookNowWeather.temp,
+      savedAt:new Date().toISOString()
+    });
+  }
+  writeSavedLooks(looks);
+  renderLookNowRecommendations();
+  renderSavedLooks();
+};
+
+const scoreLookNowProduct=product=>{
+  if(!lookNowWeather)return 0;
+  const temperature=Number(lookNowWeather.temp);
+  const [min,max]=product.temperature;
+  const temperatureScore=temperature>=min&&temperature<=max?5:Math.max(0,3-Math.min(Math.abs(temperature-min),Math.abs(temperature-max)));
+  const sceneScore=product.scenes.includes(lookNowScene)?5:0;
+  const windScore=Number(lookNowWeather.windSpeed)>=18&&product.tags.includes('轻风')?3:0;
+  const weatherScore=/雨|雪|雾/.test(lookNowWeather.text)&&product.category==='套装'?2:1;
+  return temperatureScore+sceneScore+windScore+weatherScore;
+};
+
+const getLookNowNarrative=()=>{
+  if(!lookNowWeather)return '';
+  const temperature=Number(lookNowWeather.temp);
+  const wind=Number(lookNowWeather.windSpeed);
+  if(/雨|雪|雾/.test(lookNowWeather.text))return '天气正在改变，完整的轮廓让今天的移动保持从容。';
+  if(wind>=18)return '风感明显，保留完整轮廓，让服装在移动中仍然稳定。';
+  if(temperature>=28)return '温度升高，减少负担，让面料和身体之间留出空气。';
+  if(temperature<=16)return '温度尚未完全升起，用完整造型保留轻薄而清晰的层次。';
+  return '温度刚好，选择一套能从空间自然过渡到下一段路线的造型。';
+};
+
+const renderLookNowRecommendations=()=>{
+  const grid=document.querySelector('[data-look-now-recommendations]');
+  const outfit=document.querySelector('[data-look-now-outfit]');
+  if(!grid||!lookNowWeather)return;
+  const ranked=[...lookNowProducts].map(product=>({...product,score:scoreLookNowProduct(product)})).sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id));
+  const lead=ranked.find(product=>product.category==='套装'||product.category==='连衣裙')||ranked[0];
+  lookNowLead=lead;
+  const products=ranked.filter(product=>product.id!==lead.id).slice(0,3);
+  const isSaved=readSavedLooks().some(look=>look.signature===getSavedLookSignature(lead));
+  if(outfit)outfit.innerHTML=`
+    <div class="look-now-outfit-copy">
+      <p class="eyebrow">TODAY'S COMPLETE LOOK / ${lookNowScene}</p>
+      <h2>${lead.name}</h2>
+      <p>${getLookNowNarrative()}</p>
+      <div><span>${lead.category}</span><span>${lead.tags.join(' · ')}</span></div>
+      <div class="look-now-outfit-actions">
+        <a href="product.html?look=${lead.id}">查看完整造型 <b>→</b></a>
+        <button type="button" data-save-look aria-pressed="${isSaved}">${isSaved?'已收藏 · 移除':'收藏此套造型'} <span>${isSaved?'−':'+'}</span></button>
+      </div>
+    </div>
+    <a class="look-now-outfit-image" href="product.html?look=${lead.id}"><img src="assets/products/${lead.image}" alt="${lead.name}"></a>
+  `;
+  grid.innerHTML=products.map((product,index)=>`
+    <article class="look-now-product-card">
+      <a href="product.html?look=${product.id}" class="look-now-product-image"><img src="assets/products/${product.image}" alt="${product.name}"></a>
+      <div class="look-now-product-copy">
+        <span>0${index+1} / ${product.category}</span>
+        <h3>${product.name}</h3>
+        <p>${product.tags.join(' · ')}</p>
+        <a href="product.html?look=${product.id}">查看单品 <b>→</b></a>
+      </div>
+    </article>
+  `).join('');
+};
+
+const bindLookNowScenes=()=>{
+  document.querySelectorAll('[data-look-now-scene]').forEach(button=>button.addEventListener('click',()=>{
+    lookNowScene=button.dataset.lookNowScene;
+    document.querySelectorAll('[data-look-now-scene]').forEach(item=>item.classList.toggle('is-active',item===button));
+    renderLookNowRecommendations();
+  }));
+};
+
+const bindSavedLookActions=()=>{
+  document.addEventListener('click',event=>{
+    if(event.target.closest('[data-save-look]')){
+      saveCurrentLook();
+      return;
+    }
+    const remove=event.target.closest('[data-remove-saved-look]');
+    if(remove){
+      writeSavedLooks(readSavedLooks().filter(look=>look.signature!==remove.dataset.removeSavedLook));
+      renderSavedLooks();
+      renderLookNowRecommendations();
+    }
+  });
+};
+
+const setLookNowLoading=message=>{
+  const panel=document.querySelector('#lookNowPanel');
+  if(panel)panel.innerHTML=`<p class="look-now-status">${message}</p>`;
+};
+
+const bindLookNowLocation=()=>{
+  const select=document.querySelector('#lookNowCity');
+  const locateButton=document.querySelector('#lookNowLocate');
+  if(select)select.addEventListener('change',()=>{
+    const [id,name]=select.value.split('|');
+    lookNowLocation={id,name};
+    loadLookNowWeather();
+  });
+  if(locateButton)locateButton.addEventListener('click',()=>{
+    if(!navigator.geolocation){
+      setLookNowLoading('当前浏览器不支持定位，请从城市列表中选择。');
+      return;
+    }
+    locateButton.disabled=true;
+    locateButton.textContent='正在定位……';
+    navigator.geolocation.getCurrentPosition(position=>{
+      const longitude=position.coords.longitude.toFixed(2);
+      const latitude=position.coords.latitude.toFixed(2);
+      lookNowLocation={id:`${longitude},${latitude}`,name:'当前位置'};
+      loadLookNowWeather().finally(()=>{
+        locateButton.disabled=false;
+        locateButton.innerHTML='使用我的位置 <span>↗</span>';
+      });
+    },()=>{
+      setLookNowLoading('无法获取当前位置，请从城市列表中选择。');
+      locateButton.disabled=false;
+      locateButton.innerHTML='使用我的位置 <span>↗</span>';
+    },{enableHighAccuracy:false,timeout:8000,maximumAge:600000});
+  });
+};
+
+const loadLookNowWeather=async()=>{
+  const panel=document.querySelector('#lookNowPanel');
+  if(!panel)return;
+  setLookNowLoading(`正在读取${lookNowLocation.name}天气……`);
+  const query=new URLSearchParams({location:lookNowLocation.id});
+  try{
+    const response=await fetch(`/api/weather?${query}`);
+    const data=await response.json();
+    if(!response.ok||data.code!=='200')throw new Error(data.code||'weather_request_failed');
+    const weather=data.now;
+    lookNowWeather=weather;
+    panel.innerHTML=`
+      <div class="look-now-weather">
+        <div class="look-now-location">
+          <span class="eyebrow">CURRENT WEATHER / ${lookNowLocation.name.toUpperCase()}</span>
+          <strong>${lookNowLocation.name}</strong>
+          <span>${weather.text}</span>
+        </div>
+        <div class="look-now-temperature">${weather.temp}<sup>°C</sup></div>
+        <div class="look-now-details">
+          <span>体感 ${weather.feelsLike}°C</span>
+          <span>${weather.windDir} ${weather.windSpeed} km/h</span>
+          <span>湿度 ${weather.humidity}%</span>
+        </div>
+      </div>
+      <p class="look-now-note">今天的风仍然经过海岸。轻薄的层次，让身体保留移动的余地。</p>
+    `;
+    renderLookNowRecommendations();
+  }catch(error){
+    panel.innerHTML='<p class="look-now-error">暂时无法读取天气，请稍后再试。</p>';
+    console.error('LOOK NOW weather request failed:',error.message);
+  }
+};
+
+const getAskViaseamCandidates=()=>{
+  if(!lookNowWeather)return [];
+  return [...lookNowProducts]
+    .map(product=>({...product,score:scoreLookNowProduct(product)}))
+    .sort((a,b)=>b.score-a.score||a.id.localeCompare(b.id))
+    .slice(0,5)
+    .map(product=>({id:product.id,name:product.name,category:product.category,tags:product.tags}));
+};
+
+const setAskViaseamAnswer=(message,state='ready')=>{
+  const answer=document.querySelector('[data-ask-viaseam-answer]');
+  if(!answer)return;
+  answer.dataset.state=state;
+  const status=answer.querySelector('span');
+  const copy=answer.querySelector('p');
+  if(status)status.textContent=state==='loading'?'VIASEAM / EDITING':state==='error'?'VIASEAM / NOTICE':'VIASEAM / ROUTE';
+  if(copy)copy.textContent=message;
+};
+
+const bindAskViaseam=()=>{
+  const form=document.querySelector('[data-ask-viaseam-form]');
+  const input=document.querySelector('#askViaseamInput');
+  const context=document.querySelector('[data-ask-viaseam-context]');
+  if(!form||!input)return;
+
+  document.querySelectorAll('[data-ask-prompt]').forEach(button=>button.addEventListener('click',()=>{
+    input.value=button.dataset.askPrompt;
+    input.focus();
+  }));
+
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const message=input.value.trim();
+    if(!message)return;
+    const submit=form.querySelector('button[type="submit"]');
+    submit.disabled=true;
+    setAskViaseamAnswer('正在结合天气、场景和现售商品整理你的穿着路线……','loading');
+    if(context)context.textContent=`${lookNowLocation.name} / ${lookNowScene}${lookNowWeather?` / ${lookNowWeather.text} ${lookNowWeather.temp}°C`:''}`;
+    try{
+      const response=await fetch('/api/ask',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          message,
+          location:lookNowLocation.name,
+          scene:lookNowScene,
+          weather:lookNowWeather?{
+            text:lookNowWeather.text,
+            temp:lookNowWeather.temp,
+            feelsLike:lookNowWeather.feelsLike,
+            windDir:lookNowWeather.windDir,
+            windSpeed:lookNowWeather.windSpeed,
+            humidity:lookNowWeather.humidity
+          }:null,
+          candidates:getAskViaseamCandidates()
+        })
+      });
+      const data=await response.json();
+      if(!response.ok)throw new Error(data.error||'ask_request_failed');
+      setAskViaseamAnswer(data.answer||'暂时没有生成合适的路线，请换一种说法再试。');
+    }catch(error){
+      setAskViaseamAnswer('咨询服务暂时无法连接，请稍后再试。','error');
+      console.error('ASK VIASEAM request failed:',error.message);
+    }finally{
+      submit.disabled=false;
+    }
+  });
+};
+
+addLookNowNavigation();
+bindLookNowScenes();
+bindLookNowLocation();
+bindSavedLookActions();
+bindAskViaseam();
+renderSavedLooks();
+loadLookNowWeather();

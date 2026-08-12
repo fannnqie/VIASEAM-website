@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="VIASEAM LOOK NOW 当日天气造型编辑" />
+    <title>LOOK NOW / VIASEAM</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="look-now-page">
+    <header class="site-header" data-header>
+      <a class="brand-lockup" href="index.html#top" aria-label="返回 VIASEAM 首页">
+        <span class="brand-mark">V</span>
+        <span class="brand-name">VIASEAM</span>
+      </a>
+      <nav class="desktop-nav" aria-label="主导航">
+        <a href="series.html">系列</a>
+        <a href="shop.html">商品</a>
+        <a href="look-now.html" aria-current="page">LOOK NOW</a>
+        <a href="https://fannnqie.github.io/viaseam-magazine/" target="_blank" rel="noopener">互动杂志</a>
+        <a href="about.html">关于 VIASEAM</a>
+      </nav>
+      <div class="header-actions">
+        <button class="menu-toggle" type="button" data-menu-toggle aria-label="打开菜单" aria-expanded="false">菜单</button>
+      </div>
+    </header>
+
+    <aside class="mobile-menu" data-mobile-menu aria-hidden="true">
+      <button class="menu-close" type="button" data-menu-close>关闭</button>
+      <nav aria-label="移动端导航">
+        <a href="index.html#top">首页</a>
+        <a href="series.html">系列</a>
+        <a href="shop.html">商品</a>
+        <a href="look-now.html" aria-current="page">LOOK NOW</a>
+        <a href="https://fannnqie.github.io/viaseam-magazine/" target="_blank" rel="noopener">互动杂志</a>
+        <a href="about.html">关于 VIASEAM</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section class="look-now-masthead">
+        <div class="look-now-masthead-copy reveal">
+          <p class="eyebrow">VIASEAM / ROUTE 01 / DAILY EDIT</p>
+          <h1>LOOK NOW</h1>
+          <p class="look-now-lead">让天气成为今天造型的第一条路线。</p>
+          <p class="look-now-subcopy">从城市的温度、风向与移动场景出发，VIASEAM 为你整理此刻适合穿着的现售款。</p>
+        </div>
+        <div class="look-now-masthead-index reveal">
+          <span>01</span>
+          <i></i>
+          <span>WEATHER / FORM / ROUTE</span>
+        </div>
+      </section>
+
+      <section class="look-now-weather-section">
+        <div class="look-now-weather-heading reveal">
+          <p class="eyebrow">CURRENT WEATHER / SHANGHAI</p>
+          <h2>今天，穿什么？</h2>
+          <p>先从当下的空气开始。天气数据将成为造型编辑的第一层筛选。</p>
+        </div>
+        <div class="look-now-location-controls reveal" aria-label="选择天气地点">
+          <label for="lookNowCity">所在城市</label>
+          <select id="lookNowCity">
+            <option value="101020100|上海">上海</option>
+            <option value="101010100|北京">北京</option>
+            <option value="101280101|广州">广州</option>
+            <option value="101280601|深圳">深圳</option>
+            <option value="101210101|杭州">杭州</option>
+            <option value="101190401|苏州">苏州</option>
+            <option value="101190101|南京">南京</option>
+            <option value="101230201|厦门">厦门</option>
+          </select>
+          <button type="button" id="lookNowLocate">使用我的位置 <span>↗</span></button>
+        </div>
+        <div class="look-now-panel reveal" id="lookNowPanel" aria-live="polite">
+          <p class="look-now-status">正在读取上海天气……</p>
+        </div>
+      </section>
+
+      <section class="look-now-route-section reveal">
+        <div>
+          <p class="eyebrow">NEXT FILTER / SCENE</p>
+          <h2>选择今天的移动场景</h2>
+        </div>
+        <div class="look-now-scene-list" role="list" aria-label="选择穿着场景">
+          <button type="button" class="is-active" data-look-now-scene="城市漫游">城市漫游</button>
+          <button type="button" data-look-now-scene="海滨度假">海滨度假</button>
+          <button type="button" data-look-now-scene="日常通勤">日常通勤</button>
+          <button type="button" data-look-now-scene="夜间出行">夜间出行</button>
+        </div>
+        <p class="look-now-coming">选择场景后，系统会根据实时天气更新现售款推荐。</p>
+      </section>
+
+      <section class="ask-viaseam-section" id="askViaseam">
+        <div class="ask-viaseam-heading reveal">
+          <p class="eyebrow">PERSONAL ROUTE / ASK VIASEAM</p>
+          <h2>告诉我，<br />你要去哪里。</h2>
+          <p>输入今天的安排、穿着需求或天气顾虑。VIASEAM 将结合当前城市、天气和移动场景，从现售商品中整理一条穿着路线。</p>
+        </div>
+        <div class="ask-viaseam-console reveal">
+          <form class="ask-viaseam-form" data-ask-viaseam-form>
+            <label for="askViaseamInput">你的问题</label>
+            <textarea id="askViaseamInput" name="message" maxlength="500" rows="4" placeholder="例如：今晚在上海沿江散步，风有点大，适合穿什么？" required></textarea>
+            <div class="ask-viaseam-form-foot">
+              <span data-ask-viaseam-context>将结合当前天气与场景回答</span>
+              <button type="submit">提交路线 <b>→</b></button>
+            </div>
+          </form>
+          <div class="ask-viaseam-answer" data-ask-viaseam-answer aria-live="polite">
+            <span>VIASEAM / READY</span>
+            <p>把今天的目的地告诉我。</p>
+          </div>
+          <div class="ask-viaseam-prompts" aria-label="示例问题">
+            <button type="button" data-ask-prompt="今天通勤后要去海边，怎样穿更合适？">通勤后去海边</button>
+            <button type="button" data-ask-prompt="今晚有风，想穿得轻松但有层次。">有风的夜晚</button>
+            <button type="button" data-ask-prompt="我想要一套适合城市漫游的完整造型。">城市漫游造型</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="look-now-recommendations-section" id="lookNowRecommendations" aria-live="polite">
+        <div class="look-now-outfit" data-look-now-outfit></div>
+        <div class="look-now-recommendations-heading">
+          <p class="eyebrow">SELECTED FROM CURRENT SALE</p>
+          <h2>此刻的三件</h2>
+          <p>从 VIASEAM 现售款中筛选，不包含系列展示造型。</p>
+        </div>
+        <div class="look-now-recommendations-grid" data-look-now-recommendations></div>
+      </section>
+
+      <section class="look-list-section" id="lookList" aria-live="polite">
+        <div class="look-list-heading">
+          <p class="eyebrow">SAVED ROUTES / LOOK LIST</p>
+          <h2>收藏的造型</h2>
+          <p>留住当时的天气、路线和那一套你想再次抵达的造型。</p>
+        </div>
+        <div class="look-list-grid" data-look-now-saved></div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div><span class="footer-mark">V</span><p>沿着身体与空间，探索新的着装路线。</p></div>
+      <div class="footer-links"><a href="index.html">首页</a><a href="series.html">系列</a><a href="shop.html">商品</a><a href="look-now.html">LOOK NOW</a></div>
+      <small>© 2027 VIASEAM. 保留所有权利。</small>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -19,15 +19,12 @@ const readBody=request=>{
   });
 };
 
-const extractOutputText=data=>{
-  if(typeof data.output_text==='string')return data.output_text.trim();
-  return (data.output||[]).flatMap(item=>item.content||[]).filter(item=>item.type==='output_text').map(item=>item.text||'').join('\n').trim();
-};
-
 module.exports=async function handler(request,response){
   if(request.method!=='POST')return sendJson(response,405,{error:'method_not_allowed'});
-  const apiKey=String(process.env.OPENAI_API_KEY||'').trim();
+  const apiKey=String(process.env.DASHSCOPE_API_KEY||'').trim();
+  const baseUrl=String(process.env.DASHSCOPE_BASE_URL||'').trim().replace(/\/$/,'');
   if(!apiKey)return sendJson(response,503,{error:'ask_service_not_configured'});
+  if(!baseUrl||!/^https:\/\/[a-zA-Z0-9.-]+(?:\/compatible-mode\/v1)?$/.test(baseUrl))return sendJson(response,503,{error:'ask_base_url_not_configured'});
 
   try{
     const body=await readBody(request);
@@ -44,23 +41,25 @@ module.exports=async function handler(request,response){
     })):[];
 
     const context={location,scene,weather,candidates};
-    const upstream=await fetch('https://api.openai.com/v1/responses',{
+    const upstream=await fetch(`${baseUrl}/chat/completions`,{
       method:'POST',
       headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
       body:JSON.stringify({
-        model:process.env.OPENAI_MODEL||'gpt-5-mini',
-        store:false,
-        max_output_tokens:420,
-        instructions:'你是 VIASEAM 品牌官网中的穿着路线编辑 ASK VIASEAM。使用克制、清晰、具有编辑感的中文回答。先直接给出穿着判断，再解释天气和场景依据，最后只从提供的 candidates 现售商品中推荐 1 至 3 件，并附上“商品编号 01”这种编号。严禁虚构候选列表之外的商品；严禁把 LOOK 02 系列展示造型当作现售商品；不要声称提供医疗或安全保证。若没有天气数据，明确说未取得实时天气，再根据用户描述回答。总长度控制在 180 个汉字左右，不使用 Markdown 表格。',
-        input:`用户问题：${message}\n当前页面上下文：${JSON.stringify(context)}`
+        model:process.env.DASHSCOPE_MODEL||'qwen-plus',
+        messages:[
+          {role:'system',content:'你是 VIASEAM 品牌官网中的穿着路线编辑 ASK VIASEAM。使用克制、清晰、具有编辑感的中文回答。先直接给出穿着判断，再解释天气和场景依据，最后只从提供的 candidates 现售商品中推荐 1 至 3 件，并附上“商品编号 01”这种编号。严禁虚构候选列表之外的商品；严禁把 LOOK 02 系列展示造型当作现售商品；不要声称提供医疗或安全保证。若没有天气数据，明确说未取得实时天气，再根据用户描述回答。总长度控制在 180 个汉字左右，不使用 Markdown 表格。'},
+          {role:'user',content:`用户问题：${message}\n当前页面上下文：${JSON.stringify(context)}`}
+        ],
+        max_tokens:420,
+        temperature:0.6
       })
     });
     const data=await upstream.json();
     if(!upstream.ok){
-      console.error('OpenAI API error',upstream.status,data?.error?.type||'unknown');
+      console.error('DashScope API error',upstream.status,data?.error?.type||data?.code||'unknown');
       return sendJson(response,502,{error:'assistant_upstream_failed'});
     }
-    const answer=extractOutputText(data);
+    const answer=String(data?.choices?.[0]?.message?.content||'').trim();
     if(!answer)return sendJson(response,502,{error:'empty_assistant_response'});
     return sendJson(response,200,{answer});
   }catch(error){

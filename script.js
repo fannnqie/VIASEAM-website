@@ -527,7 +527,28 @@ const getAskViaseamCandidates=()=>{
     .map(product=>({id:product.id,name:product.name,category:product.category,tags:product.tags}));
 };
 
-const setAskViaseamAnswer=(message,state='ready')=>{
+const renderAskViaseamProducts=ids=>{
+  const container=document.querySelector('[data-ask-viaseam-products]');
+  if(!container)return;
+  const products=(Array.isArray(ids)?ids:[])
+    .map(id=>lookNowProducts.find(product=>product.id===String(id).padStart(2,'0')))
+    .filter(Boolean)
+    .filter((product,index,list)=>list.findIndex(item=>item.id===product.id)===index)
+    .slice(0,3);
+  container.innerHTML=products.length?products.map(product=>`
+    <a class="ask-viaseam-product" href="product.html?look=${product.id}">
+      <span class="ask-viaseam-product-image"><img src="assets/products/${product.image}" alt="${product.name}"></span>
+      <span class="ask-viaseam-product-copy">
+        <small>PRODUCT ${product.id} / ${product.category}</small>
+        <strong>${product.name}</strong>
+        <em>${product.tags.join(' · ')}</em>
+        <b>查看商品 →</b>
+      </span>
+    </a>
+  `).join(''):'';
+};
+
+const setAskViaseamAnswer=(message,state='ready',productIds=[])=>{
   const answer=document.querySelector('[data-ask-viaseam-answer]');
   if(!answer)return;
   answer.dataset.state=state;
@@ -535,6 +556,7 @@ const setAskViaseamAnswer=(message,state='ready')=>{
   const copy=answer.querySelector('p');
   if(status)status.textContent=state==='loading'?'VIASEAM / EDITING':state==='error'?'VIASEAM / NOTICE':'VIASEAM / ROUTE';
   if(copy)copy.textContent=message;
+  renderAskViaseamProducts(state==='ready'?productIds:[]);
 };
 
 const bindAskViaseam=()=>{
@@ -577,7 +599,7 @@ const bindAskViaseam=()=>{
       });
       const data=await response.json();
       if(!response.ok)throw new Error(data.error||'ask_request_failed');
-      setAskViaseamAnswer(data.answer||'暂时没有生成合适的路线，请换一种说法再试。');
+      setAskViaseamAnswer(data.answer||'暂时没有生成合适的路线，请换一种说法再试。','ready',data.productIds||[]);
     }catch(error){
       setAskViaseamAnswer('咨询服务暂时无法连接，请稍后再试。','error');
       console.error('ASK VIASEAM request failed:',error.message);

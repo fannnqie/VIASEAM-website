@@ -61,7 +61,12 @@ module.exports=async function handler(request,response){
     }
     const answer=String(data?.choices?.[0]?.message?.content||'').trim();
     if(!answer)return sendJson(response,502,{error:'empty_assistant_response'});
-    return sendJson(response,200,{answer});
+    const allowedIds=new Set(candidates.map(item=>item.id));
+    const mentionedIds=[...answer.matchAll(/(?:商品(?:编号)?|PRODUCT)\s*[：:#-]?\s*(\d{1,2})/gi)]
+      .map(match=>match[1].padStart(2,'0'))
+      .filter(id=>allowedIds.has(id));
+    const productIds=[...new Set(mentionedIds)].slice(0,3);
+    return sendJson(response,200,{answer,productIds});
   }catch(error){
     console.error('ASK VIASEAM request failed',error);
     return sendJson(response,400,{error:error.message||'ask_request_failed'});
